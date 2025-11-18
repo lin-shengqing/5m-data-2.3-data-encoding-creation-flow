@@ -77,6 +77,7 @@ Answer:
 
 ```python
 # Protobuf schema (book.proto)
+
 %%writefile ../schema/book.proto
 syntax = "proto3";
 
@@ -92,7 +93,7 @@ message BookRequest {
   int64 page_count = 3;
 }
 
-service School {
+service Library {
   rpc checkoutBook(BookRequest) returns (Book) {}
 }
 
@@ -105,15 +106,15 @@ import grpc
 import book_pb2_grpc
 
 
-class School(book_pb2_grpc.SchoolServicer):
+class Library(book_pb2_grpc.LibraryServicer):
 
   def checkoutBook(self, request, context):
     request.book.author = request.author
     return request.book
 
 server = grpc.server(futures.ThreadPoolExecutor(max_workers=2))
-book_pb2_grpc.add_SchoolServicer_to_server(
-    School(), server)
+book_pb2_grpc.add_LibraryServicer_to_server(
+    Library(), server)
 server.add_insecure_port('[::]:50051')
 server.start()
 server.wait_for_termination()
@@ -134,7 +135,7 @@ def checkoutBook(stub, book, author):
 with grpc.insecure_channel('localhost:50051') as channel:
     martin = book_pb2.Book(title='Martin Book', author='', page_count=67)
     author = "Martin"
-    stub = book_pb2_grpc.SchoolStub(channel)
+    stub = book_pb2_grpc.LibraryStub(channel)
     martin = checkoutBook(stub, martin, author)
     print(martin)
     print(f"Book title: {martin.title}, Author: {martin.author}, Page Count: {martin.page_count}")
